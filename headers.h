@@ -19,8 +19,12 @@ void balance(account* acc);
 account* add_account();
 void add_accounts(account *db[],int nm);
 void bank_screen();
-int log_in(int id,int passwd);
+void handle_bank_menu();
+int log_in(int id,int passwd,account *user);
 void add_accounts_from_file(FILE *src);
+void account_screen();
+void handle_account_menu(account *acc);
+
 #endif
 
 
