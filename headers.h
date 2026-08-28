@@ -6,6 +6,11 @@
 #ifndef ACCOUNT_HEADERS_H
 #define ACCOUNT_HEADERS_H
 
+#define DB_FILE "accounts.txt"
+#define TEMP_FILE "temp.txt"
+
+#define ADMIN_ID "Admin123"
+#define ADMIN_PASSWORD "11223344"
 typedef struct {
     int id;
     char name[20];
@@ -13,17 +18,29 @@ typedef struct {
     float balance;
 }account;
 
-void deposit(account* acc,float money);
-void withdraw(account * acc,float money);
-void balance(account* acc);
+void sign_up();
+void deposit(account* user,float money);
+void withdraw(account * user,float money);
+void balance(account* user);
+void update_balance(account *user);
+
+
 account* add_account();
 void add_accounts(account *db[],int nm);
+void add_accounts_from_file(FILE *src);
+void log_in_admin(char id[20],char key[20]);
+void list_accounts();
+
 void bank_screen();
 void handle_bank_menu();
+
 int log_in(int id,int passwd,account *user);
-void add_accounts_from_file(FILE *src);
 void account_screen();
 void handle_account_menu(account *acc);
+
+void admin_screen();
+void handle_admin_menu();
+
 
 #endif
 

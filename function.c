@@ -2,68 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DB_FILE "accounts.txt"
-
-void deposit(account* acc,float money) {
-    acc->balance+=money;
-}
-
-void withdraw(account * acc,float money) {
-    if (acc->balance<money){
-    perror("insufficient funds");
-    }
-    acc->balance-=money;
-}
-
-void balance(account *acc) {
-    printf("Current balance is %.2f \n",acc->balance);
-}
-
-account* add_account() {
-    account *acc=malloc(sizeof(account));
-
-    printf("Enter an account id: \n");
-    if (scanf("%d",&(acc->id))!=1) {
-           perror("Scanf error ");
-           exit(1);
-    }
-
-    printf("Enter account password: \n");
-    if (scanf("%d",&(acc->password))!=1) {
-        perror("Scanf error ");
-        exit(1);}
-
-    printf("Enter a name : \n");
-    if (scanf("%s",acc->name)!=1) {
-            perror("Scanf error ");
-            exit(1);}
-
-    printf("Enter balance: \n");
-    if (scanf("%f",&(acc->balance))!=1) {
-            perror("Scanf error ");
-            exit(1);}
 
 
-    FILE *fp=fopen(DB_FILE,"a");
-    if (fp==NULL) {
-            perror("fopen error");
-            exit(1);}
-
-    fprintf(fp,"%d:%s:%d:%f\n",acc->id,acc->name,acc->password,acc->balance);
-
-    if (fclose(fp)==EOF) {
-        perror("Fclose error");
-    }
-        return acc;
-    }
-
-void add_accounts(account *db[],int nm) {
-
-    int i;
-    for (i=0;i<nm;i++) {
-        db[i]=add_account();
-    }
-}
 
 void bank_screen() {
     printf("-----------------------------------------------\n");
@@ -72,8 +12,7 @@ void bank_screen() {
     printf("-----------------------------------------------\n");
     printf("Press 1 to sign in...\n");
     printf("Press 2 to sign up...\n");
-    printf("Press 3 to add many account ...\n");
-    printf("Press 4 to load many account from file...\n");
+    printf("Press 3 to sign in as admin...\n");
     printf("Press 0 to exit...\n");
     printf("-----------------------------------------------\n");
     printf("-----------------------------------------------\n");
@@ -98,40 +37,27 @@ void handle_bank_menu() {
 
                 success=log_in(id,passwd,&user);
                 if (success==1) {
+                    printf("Please enter to continue account menu... \n");
+                    getchar();
+                    getchar();
                     handle_account_menu(&user);
                 }
-                getchar();
-                getchar();
-
             }
             break;
             case 2:
-                add_account();
+                sign_up();
                 break;
-            case 3:{
-                int nm;
-                printf("Enter number of accounts: \n");
-                scanf("%d",&nm);
-                account *accs[nm];
-                add_accounts(accs,nm);
+            case 3: {
+                char id[20],pass[20];
+                printf("Please enter admin account id : \n");
+                scanf("%s",id);
+
+                printf("Please enter admin password : \n");
+                scanf("%s",pass);
+
+                log_in_admin(id,pass);
+            }
                 break;
-            }
-            case 4: {
-                char fname[20];
-                printf("Enter the file name...\n");
-                scanf("%s",fname);
-                FILE *src=fopen(fname ,"r");
-                if (src==NULL) {
-                    perror("fopen error");
-                    continue;
-                }
-                add_accounts_from_file(src);
-                if (fclose(src)==EOF) {
-                    perror("fclose error \n");
-                    continue;
-                };
-            }
-            break;
             case 0:
                 printf("Existing system...\n");
                 break;
@@ -168,26 +94,10 @@ int log_in(int id,int passwd,account *user) {
     }
     printf("Invalid ID or password!\n");
 
-    return 1;
+    return 0;
 }
 
-void add_accounts_from_file(FILE *src) {
-    FILE *dst=fopen(DB_FILE,"a");
-    if (dst==NULL) {
-        perror("fopen error \n");
-        return;
-    }
-    char line_s[64];
-    while (fgets(line_s,sizeof(line_s),src)) {
-        fputs(line_s,dst);
-    }
-    if (fclose(dst)==EOF) {
-        perror("fclose error \n");
-        return;
-    };
 
-    fclose(src);
-}
 
 void account_screen() {
     printf("-----------------------------------------------\n");
@@ -202,7 +112,7 @@ void account_screen() {
     printf("-----------------------------------------------\n");
 }
 
-void handle_account_menu(account *acc) {
+void handle_account_menu(account *user) {
     int chs;
     do{
         system("cls");
@@ -211,19 +121,95 @@ void handle_account_menu(account *acc) {
 
        switch (chs) {
            case 1:
+               printf("Your balance value is %f \n",user->balance);
                break;
-           case 2:
+           case 2: {
+               float money;
+               printf("Enter the amount to deposit: \n");
+               scanf("%f",&money);
+               deposit(user,money);
                break;
-           case 3:
+           }
+           case 3:{
+               float money;
+               printf("Enter the amount to withdraw: \n");
+               scanf("%f",&money);
+               withdraw(user,money);
                break;
+           }
            case 0:
                break;
-               deafult:
-                   printf("Incvalid chocie!! Try again or exit...");
+           default:
+               printf("Incvalid chocie!! Try again or exit...");
                break;
 
        }
+        if (chs!=0) {
+            printf("Press enter to continue... \n");
+            getchar();
+            getchar();
+        }
 
    }while (chs!=0);
 }
 
+void admin_screen() {
+    printf("Press 1 to add one account ...\n");
+    printf("Press 2 to add many account ...\n");
+    printf("Press 3 to load many account from file...\n");
+    printf("Press 4 to list all accounts ...\n");
+    printf("Press 0 to exit admin account...\n");
+}
+
+void handle_admin_menu() {
+    int chs;
+    do{
+        system("cls");
+        admin_screen();
+        scanf("%d",&chs);
+    switch (chs) {
+        case 1:
+            add_account();
+            break;
+        case 2:{
+            int nm;
+            printf("Enter number of accounts: \n");
+            scanf("%d",&nm);
+            account *accs[nm];
+            add_accounts(accs,nm);
+            break;
+        }
+        case 3: {
+            char fname[20];
+            printf("Enter the file name...\n");
+            scanf("%s",fname);
+            FILE *src=fopen(fname ,"r");
+            if (src==NULL) {
+                perror("fopen error");
+                continue;
+            }
+            add_accounts_from_file(src);
+            if (fclose(src)==EOF) {
+                perror("fclose error \n");
+                continue;
+            };
+        }
+            break;
+        case 4:
+            list_accounts();
+            break;
+        case 0:
+            printf("Existing system... \n");
+            break;
+        default:
+            printf("Invalid chocie!! Try again or exit...");
+            break;
+    }
+
+        printf("Please enter return to the admin menu...\n");
+        getchar();
+        getchar();
+
+    }
+    while (chs!=0);
+}

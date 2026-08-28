@@ -5,4 +5,6 @@ set(CMAKE_C_STANDARD 11)
 
 add_executable(untitled main.c
         headers.h
-        function.c)
+        function.c
+        account_function.c
+        admin_functions.c)

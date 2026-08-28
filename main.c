@@ -5,6 +5,5 @@
 int main(void) {
     handle_bank_menu();
 
-
     return 0;
 }
