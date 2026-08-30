@@ -19,10 +19,12 @@ typedef struct {
 }account;
 
 void sign_up();
+int log_in(int id,int passwd,account *user);
 void deposit(account* user,float money);
 void withdraw(account * user,float money);
 void balance(account* user);
 void update_balance(account *user);
+void transfer_money(int sender,int receiver, float money);
 
 
 account* add_account();
@@ -34,13 +36,13 @@ void list_accounts();
 void bank_screen();
 void handle_bank_menu();
 
-int log_in(int id,int passwd,account *user);
 void account_screen();
 void handle_account_menu(account *acc);
 
 void admin_screen();
 void handle_admin_menu();
 
+int find_addres(int id,account *acc);
 
 #endif
 

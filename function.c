@@ -74,28 +74,7 @@ void handle_bank_menu() {
 }
 
 
-int log_in(int id,int passwd,account *user) {
-    FILE *fp=fopen(DB_FILE,"r");
-    if (fp==NULL) {
-        perror("fopen error \n");
-        return 0;
-    }
 
-    account tmp;
-
-    while (fscanf(fp,"%d:%19[^:]:%d:%f",&tmp.id,tmp.name,&tmp.password,&tmp.balance)==4) {
-        if ((passwd==tmp.password)&&(id==tmp.id)) {
-            printf("Login successful! Welcome, %s.",tmp.name);
-            *user=tmp;
-            fclose(fp);
-            return 1;
-        }
-
-    }
-    printf("Invalid ID or password!\n");
-
-    return 0;
-}
 
 
 
@@ -107,6 +86,7 @@ void account_screen() {
     printf("Press 1 to check balance...\n");
     printf("Press 2 to deposit money...\n");
     printf("Press 3 to withdraw money...\n");
+    printf("Press 4 to send money another account...\n");
     printf("Press 0 to log out...\n");
     printf("-----------------------------------------------\n");
     printf("-----------------------------------------------\n");
@@ -132,9 +112,21 @@ void handle_account_menu(account *user) {
            }
            case 3:{
                float money;
-               printf("Enter the amount to withdraw: \n");
+               printf("Enter the amount to withdraw from bank: \n");
                scanf("%f",&money);
                withdraw(user,money);
+               break;
+           }
+           case 4: {
+               float money;
+               int receiver;
+               printf("Enter transfer amount: \n ");
+               scanf("%f",&money);
+               printf("Enter recipient ID: \n ");
+               scanf("%d",&receiver);
+
+               transfer_money(user->id,receiver,money);
+
                break;
            }
            case 0:
@@ -213,3 +205,28 @@ void handle_admin_menu() {
     }
     while (chs!=0);
 }
+
+int find_addres(int id,account *acc) {
+    FILE *fp=fopen(DB_FILE,"r");
+    if (fp==NULL) {
+        perror("fopen error");
+        return 0;
+    }
+
+    account tmp;
+
+    while (fscanf(fp,"%d:%19[^:]:%d:%f",&tmp.id,tmp.name,&tmp.password,&tmp.balance)==4) {
+        if (id==tmp.id) {
+            *acc=tmp;
+            fclose(fp);
+            return 1;
+        }
+
+    }
+    fclose(fp);
+    printf("Account not found!\n");
+
+    return 0;
+
+}
+

@@ -38,6 +38,29 @@ void sign_up() {
 
 };
 
+int log_in(int id,int passwd,account *user) {
+    FILE *fp=fopen(DB_FILE,"r");
+    if (fp==NULL) {
+        perror("fopen error \n");
+        return 0;
+    }
+
+    account tmp;
+
+    while (fscanf(fp,"%d:%19[^:]:%d:%f",&tmp.id,tmp.name,&tmp.password,&tmp.balance)==4) {
+        if ((passwd==tmp.password)&&(id==tmp.id)) {
+            printf("Login successful! Welcome, %s.",tmp.name);
+            *user=tmp;
+            fclose(fp);
+            return 1;
+        }
+
+    }
+    fclose(fp);
+    printf("Invalid ID or password!\n");
+
+    return 0;
+}
 
 void deposit(account* user,float money) {
     user->balance+=money;
@@ -92,4 +115,26 @@ void update_balance(account *user) {
 
     rename(TEMP_FILE,DB_FILE);
 
+}
+
+void transfer_money(int sen,int rec,float money) {
+    FILE *fp=fopen(DB_FILE,"r");
+    if (fp==NULL) {
+        perror("Fopen error");
+        return;
+    }
+    account *sender,*receiver;
+
+    find_addres(sen,sender);
+
+    if (find_addres(rec,receiver)==0) {
+        perror("Cannot found receiver account!! \n");
+        return;
+    }
+
+    deposit(receiver,money);
+
+    withdraw(sender,money);
+
+    printf("Transfer completed succesfully, your current balance is %f",receiver->balance);
 }
