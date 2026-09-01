@@ -21,10 +21,10 @@ typedef struct {
 void sign_up();
 int log_in(int id,int passwd,account *user);
 void deposit(account* user,float money);
-void withdraw(account * user,float money);
+int withdraw(account * user,float money);
 void balance(account* user);
 void update_balance(account *user);
-void transfer_money(int sender,int receiver, float money);
+void transfer_money(account *sen,int receiver, float money);
 
 
 account* add_account();

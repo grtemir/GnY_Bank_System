@@ -125,7 +125,7 @@ void handle_account_menu(account *user) {
                printf("Enter recipient ID: \n ");
                scanf("%d",&receiver);
 
-               transfer_money(user->id,receiver,money);
+               transfer_money(user,receiver,money);
 
                break;
            }

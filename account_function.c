@@ -49,7 +49,7 @@ int log_in(int id,int passwd,account *user) {
 
     while (fscanf(fp,"%d:%19[^:]:%d:%f",&tmp.id,tmp.name,&tmp.password,&tmp.balance)==4) {
         if ((passwd==tmp.password)&&(id==tmp.id)) {
-            printf("Login successful! Welcome, %s.",tmp.name);
+            printf("Login successful! Welcome, %s.\n",tmp.name);
             *user=tmp;
             fclose(fp);
             return 1;
@@ -68,14 +68,15 @@ void deposit(account* user,float money) {
 
 }
 
-void withdraw(account * user,float money) {
+int withdraw(account * user,float money) {
     if (user->balance<money){
         perror("insufficient funds");
-        return;
+        return 0;
     }
     user->balance-=money;
     update_balance(user);
-}
+    return 1;
+    }
 
 void balance(account *user) {
     printf("Current balance is %.2f \n",user->balance);
@@ -94,11 +95,11 @@ void update_balance(account *user) {
     }
     account current;
     while (fscanf(src,"%d:%19[^:]:%d:%f\n",&current.id,current.name,&current.password,&current.balance)==4) {
-        if (current.id=user->id) {
-            fprintf(tmp,"%d:%s:%d:%2f\n",current.id,current.name,current.password,user->balance);
+        if (current.id==user->id) {
+            fprintf(tmp,"%d:%s:%d:%.2f\n",current.id,current.name,current.password,user->balance);
         }
         else {
-            fprintf(tmp,"%d:%s:%d:%2f\n",current.id,current.name,current.password,current.balance);
+            fprintf(tmp,"%d:%s:%d:%.2f\n",current.id,current.name,current.password,current.balance);
 
 
         }
@@ -117,24 +118,23 @@ void update_balance(account *user) {
 
 }
 
-void transfer_money(int sen,int rec,float money) {
-    FILE *fp=fopen(DB_FILE,"r");
-    if (fp==NULL) {
-        perror("Fopen error");
+void transfer_money(account *sen,int rec,float money) {
+    if (sen->id==rec) {
+        printf("You cannot transfer your money to your own account!!! \n");
         return;
     }
-    account *sender,*receiver;
 
-    find_addres(sen,sender);
+    account receiver;
 
-    if (find_addres(rec,receiver)==0) {
+
+    if (find_addres(rec,&receiver)==0) {
         perror("Cannot found receiver account!! \n");
         return;
     }
 
-    deposit(receiver,money);
+    if(withdraw(sen,money)) {
+        deposit(&receiver,money);
+        printf("Transfer completed succesfully, your current balance is %.2f",sen->balance);
 
-    withdraw(sender,money);
-
-    printf("Transfer completed succesfully, your current balance is %f",receiver->balance);
+    }
 }
