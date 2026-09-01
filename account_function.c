@@ -1,6 +1,7 @@
 #include "headers.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 void sign_up() {
     account *acc=malloc(sizeof(account));
@@ -31,6 +32,8 @@ void sign_up() {
 
     fprintf(fp,"%d:%s:%d:%.2f\n",acc->id,acc->name,acc->password,acc->balance);
 
+    log_transaction(acc->id,"SIGN_UP",0);
+
     if (fclose(fp)==EOF) {
         perror("Fclose error");
     }
@@ -52,10 +55,12 @@ int log_in(int id,int passwd,account *user) {
             printf("Login successful! Welcome, %s.\n",tmp.name);
             *user=tmp;
             fclose(fp);
+            log_transaction(user->id,"LOGIN_SUCCESS",0);
             return 1;
         }
 
     }
+    log_transaction(user->id,"LOGIN_FAILED",0);
     fclose(fp);
     printf("Invalid ID or password!\n");
 
@@ -65,16 +70,21 @@ int log_in(int id,int passwd,account *user) {
 void deposit(account* user,float money) {
     user->balance+=money;
     update_balance(user);
+    log_transaction(user->id,"DEPOSIT",money);
+
 
 }
 
 int withdraw(account * user,float money) {
     if (user->balance<money){
         perror("insufficient funds");
+        log_transaction(user->id,"WITHDRAW_FAILED",money);
         return 0;
     }
     user->balance-=money;
     update_balance(user);
+    log_transaction(user->id,"WITHDRAW",money);
+
     return 1;
     }
 
@@ -127,14 +137,45 @@ void transfer_money(account *sen,int rec,float money) {
     account receiver;
 
 
-    if (find_addres(rec,&receiver)==0) {
+    if (find_address(rec,&receiver)==0) {
         perror("Cannot found receiver account!! \n");
         return;
     }
+    log_transaction(sen->id,"TRANSFER_SEND",money);
+
 
     if(withdraw(sen,money)) {
         deposit(&receiver,money);
         printf("Transfer completed succesfully, your current balance is %.2f",sen->balance);
+        log_transaction(receiver.id,"TRANSFER_RECEIVED",money);
 
     }
 }
+
+void log_transaction(int acc_id,char *type,float money){
+    FILE *fp=fopen(LOG_FILE,"a");
+    if (fp==NULL) {
+        perror("fopen error ");
+        return;
+    }
+
+    time_t raw_time;
+    time(&raw_time);
+
+    struct tm *time_info;
+    time_info = localtime(&raw_time);
+
+    char time[30];
+
+    strftime(time,sizeof(time),"%Y-%m-%d %H:%M:%S",time_info);
+
+    if (money<=0) {
+        fprintf(fp,"[%s] ID: %d -- Action: %s \n",time,acc_id,type);
+    }
+    else {
+        fprintf(fp,"[%s] ID: %d -- Action: %s -- Amount: %.2f \n",time,acc_id,type,money);
+    }
+
+    fclose(fp);
+}
+

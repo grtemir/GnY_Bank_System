@@ -35,7 +35,10 @@ account* add_account() {
 
     fprintf(fp,"%d:%s:%d:%.2f\n",acc->id,acc->name,acc->password,acc->balance);
 
+    log_transaction(acc->id,"ADMIN_ADD_ACC_SUCCESS",0);
+
     if (fclose(fp)==EOF) {
+        log_transaction(acc->id,"ADMIN_ADD_ACC_FAILED_FILE_ERROR",0);
         perror("Fclose error");
     }
     return acc;
@@ -69,10 +72,12 @@ void add_accounts_from_file(FILE *src) {
 
 void log_in_admin(char id[20],char key[20]) {
     if ((strcmp(id,ADMIN_ID)==0 && strcmp(key,ADMIN_PASSWORD)==0)){
+        log_transaction(000, "ADMIN_LOGIN_SUCCESS", 0);
         admin_screen();
         handle_admin_menu();
     }
     else {
+        log_transaction(0, "ADMIN_LOGIN_FAILED", 0);
         printf("You entered wrong id or password, try again... \n");
     }
 
@@ -99,4 +104,22 @@ void list_accounts() {
     printf("|------|--------------------|-------------|\n");
 
     printf("");
+}
+
+void list_logs() {
+    FILE *logs=fopen(LOG_FILE,"r");
+    if (logs==NULL) {
+        perror("fopen error");
+        return;
+    }
+
+    printf("|------|----LOG-RECORDS-----|-------------|\n");
+
+    char buff[256];
+
+    while (fgets(buff,sizeof(buff),logs)) {
+        fputs(buff,stdout);
+    }
+
+    fclose(logs);
 }

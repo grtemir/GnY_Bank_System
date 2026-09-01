@@ -108,6 +108,7 @@ void handle_account_menu(account *user) {
                printf("Enter the amount to deposit: \n");
                scanf("%f",&money);
                deposit(user,money);
+
                break;
            }
            case 3:{
@@ -150,6 +151,7 @@ void admin_screen() {
     printf("Press 2 to add many account ...\n");
     printf("Press 3 to load many account from file...\n");
     printf("Press 4 to list all accounts ...\n");
+    printf("Press 5 to list log records ...\n");
     printf("Press 0 to exit admin account...\n");
 }
 
@@ -190,6 +192,9 @@ void handle_admin_menu() {
         case 4:
             list_accounts();
             break;
+        case 5:
+            list_logs();
+            break;
         case 0:
             printf("Existing system... \n");
             break;
@@ -206,7 +211,7 @@ void handle_admin_menu() {
     while (chs!=0);
 }
 
-int find_addres(int id,account *acc) {
+int find_address(int id,account *acc) {
     FILE *fp=fopen(DB_FILE,"r");
     if (fp==NULL) {
         perror("fopen error");
