@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 void sign_up() {
     account *acc=malloc(sizeof(account));
@@ -13,7 +14,7 @@ void sign_up() {
     }
 
     printf("Enter account password: \n");
-    if (scanf("%d",&(acc->password))!=1) {
+    if (scanf("%s",(acc->password))!=1) {
         perror("Scanf error");
         exit(1);}
 
@@ -22,7 +23,7 @@ void sign_up() {
         perror("Scanf error");
         exit(1);}
 
-    acc->balance=0.0;
+    acc->balance=0;
 
 
     FILE *fp=fopen(DB_FILE,"a");
@@ -30,7 +31,12 @@ void sign_up() {
         perror("fopen error");
         exit(1);}
 
-    fprintf(fp,"%d:%s:%d:%.2f\n",acc->id,acc->name,acc->password,acc->balance);
+    char hashed_psw[HASH_LEN];
+    hash_sha256(acc->password,hashed_psw);
+
+    strcpy(acc->password,hashed_psw);
+
+    fprintf(fp,"%d:%s:%s:%.2f\n",acc->id,acc->name,hashed_psw,acc->balance);
 
     log_transaction(acc->id,"SIGN_UP",0);
 
@@ -41,7 +47,7 @@ void sign_up() {
 
 };
 
-int log_in(int id,int passwd,account *user) {
+int log_in(int id,char passwd[64],account *user) {
     FILE *fp=fopen(DB_FILE,"r");
     if (fp==NULL) {
         perror("fopen error \n");
@@ -50,8 +56,11 @@ int log_in(int id,int passwd,account *user) {
 
     account tmp;
 
-    while (fscanf(fp,"%d:%19[^:]:%d:%f",&tmp.id,tmp.name,&tmp.password,&tmp.balance)==4) {
-        if ((passwd==tmp.password)&&(id==tmp.id)) {
+    char hashed_psw[HASH_LEN];
+    hash_sha256(passwd,hashed_psw);
+
+    while (fscanf(fp,"%d:%19[^:]:%64[^:]:%f",&tmp.id,tmp.name,tmp.password,&tmp.balance)==4) {
+        if ((strcmp(hashed_psw,tmp.password)==0)&&(id==tmp.id)) {
             printf("Login successful! Welcome, %s.\n",tmp.name);
             *user=tmp;
             fclose(fp);
@@ -70,20 +79,17 @@ int log_in(int id,int passwd,account *user) {
 void deposit(account* user,float money) {
     user->balance+=money;
     update_balance(user);
-    log_transaction(user->id,"DEPOSIT",money);
 
 
 }
 
 int withdraw(account * user,float money) {
     if (user->balance<money){
-        perror("insufficient funds");
-        log_transaction(user->id,"WITHDRAW_FAILED",money);
+        printf("insufficient funds");
         return 0;
     }
     user->balance-=money;
     update_balance(user);
-    log_transaction(user->id,"WITHDRAW",money);
 
     return 1;
     }
@@ -100,16 +106,16 @@ void update_balance(account *user) {
     } FILE *tmp=fopen(TEMP_FILE,"w");
     if (tmp==NULL) {
         perror("fopen error");
-        fclose(tmp);
+        fclose(src);
         return;
     }
     account current;
-    while (fscanf(src,"%d:%19[^:]:%d:%f\n",&current.id,current.name,&current.password,&current.balance)==4) {
+    while (fscanf(src,"%d:%19[^:]:%s:%f\n",&current.id,current.name,current.password,&current.balance)==4) {
         if (current.id==user->id) {
-            fprintf(tmp,"%d:%s:%d:%.2f\n",current.id,current.name,current.password,user->balance);
+            fprintf(tmp,"%d:%s:%s:%.2f\n",current.id,current.name,current.password,user->balance);
         }
         else {
-            fprintf(tmp,"%d:%s:%d:%.2f\n",current.id,current.name,current.password,current.balance);
+            fprintf(tmp,"%d:%s:%s:%.2f\n",current.id,current.name,current.password,current.balance);
 
 
         }
@@ -138,15 +144,15 @@ void transfer_money(account *sen,int rec,float money) {
 
 
     if (find_address(rec,&receiver)==0) {
-        perror("Cannot found receiver account!! \n");
+        printf("Cannot found receiver account!! \n");
         return;
     }
-    log_transaction(sen->id,"TRANSFER_SEND",money);
 
 
     if(withdraw(sen,money)) {
         deposit(&receiver,money);
         printf("Transfer completed succesfully, your current balance is %.2f",sen->balance);
+        log_transaction(sen->id,"TRANSFER_SEND",money);
         log_transaction(receiver.id,"TRANSFER_RECEIVED",money);
 
     }

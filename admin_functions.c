@@ -13,7 +13,7 @@ account* add_account() {
     }
 
     printf("Enter account password: \n");
-    if (scanf("%d",&(acc->password))!=1) {
+    if (scanf("%s",(acc->password))!=1) {
         perror("Scanf error ");
         exit(1);}
 
@@ -33,7 +33,12 @@ account* add_account() {
         perror("fopen error");
         exit(1);}
 
-    fprintf(fp,"%d:%s:%d:%.2f\n",acc->id,acc->name,acc->password,acc->balance);
+    char hashed_psw[HASH_LEN];
+    hash_sha256(acc->password,hashed_psw);
+
+    strcpy(acc->password,hashed_psw);
+
+    fprintf(fp,"%d:%s:%s:%.2f\n",acc->id,acc->name,hashed_psw,acc->balance);
 
     log_transaction(acc->id,"ADMIN_ADD_ACC_SUCCESS",0);
 
@@ -91,13 +96,17 @@ void list_accounts() {
         return;
     }
 
+
+
+
     account user;
 
     printf("|------|--------------------|-------------|\n");
     printf("|--ID--|--------NAME--------|---BALANCE---|\n");
     printf("|------|--------------------|-------------|\n");
 
-    while((fscanf(fp,"%d:%19[^:]:%d:%f",&user.id,user.name,&user.password,&user.balance))==4) {
+    while((fscanf(fp,"%d:%19[^:]:%65[^:]:%f",&user.id,user.name,user.password,&user.balance))==4) {
+
         printf("|%6d|%20s|%13f|\n",user.id,user.name,user.balance);
 
     }

@@ -2,6 +2,7 @@
 // Created by emirhan on 8/19/2026.
 //
 #include <stdio.h>
+#include "hash.h"
 
 #ifndef ACCOUNT_HEADERS_H
 #define ACCOUNT_HEADERS_H
@@ -12,15 +13,17 @@
 
 #define ADMIN_ID "Admin123"
 #define ADMIN_PASSWORD "11223344"
+
+#define HASH_LEN 65
 typedef struct {
     int id;
     char name[20];
-    int password;
+    char password[HASH_LEN];
     float balance;
 }account;
 
 void sign_up();
-int log_in(int id,int passwd,account *user);
+int log_in(int id,char password[64],account *user);
 void deposit(account* user,float money);
 int withdraw(account * user,float money);
 void balance(account* user);

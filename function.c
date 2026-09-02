@@ -27,13 +27,14 @@ void handle_bank_menu() {
 
         switch (chs) {
             case 1: {
-                int id,passwd,success;
+                char passwd[64];
+                int id,success;
                 account user;
 
                 printf("Please enter your id: \n");
                 scanf("%d",&id);
                 printf("Please enter your password: \n");
-                scanf("%d",&passwd);
+                scanf("%s",passwd);
 
                 success=log_in(id,passwd,&user);
                 if (success==1) {
@@ -81,7 +82,7 @@ void handle_bank_menu() {
 void account_screen() {
     printf("-----------------------------------------------\n");
     printf("-----------------Account Menu------------------\n");
-    printf("---------------Please choose...----------------\n");
+    printf("----------------Please choose------------------\n");
     printf("-----------------------------------------------\n");
     printf("Press 1 to check balance...\n");
     printf("Press 2 to deposit money...\n");
@@ -108,6 +109,7 @@ void handle_account_menu(account *user) {
                printf("Enter the amount to deposit: \n");
                scanf("%f",&money);
                deposit(user,money);
+               log_transaction(user->id,"DEPOSIT",money);
 
                break;
            }
@@ -115,7 +117,10 @@ void handle_account_menu(account *user) {
                float money;
                printf("Enter the amount to withdraw from bank: \n");
                scanf("%f",&money);
-               withdraw(user,money);
+               if (withdraw(user,money)==1)
+                   log_transaction(user->id,"WITHDRAW",money);
+               else
+                   log_transaction(user->id,"WITHDRAW_FAILED",money);
                break;
            }
            case 4: {

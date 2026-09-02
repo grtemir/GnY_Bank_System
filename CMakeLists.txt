@@ -7,4 +7,6 @@ add_executable(untitled main.c
         headers.h
         function.c
         account_function.c
-        admin_functions.c)
+        admin_functions.c
+        hash.c
+        hash.h)
