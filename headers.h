@@ -11,13 +11,12 @@
 #define TEMP_FILE "temp.txt"
 #define LOG_FILE  "logs.txt"
 
-#define ADMIN_ID "Admin123"
-#define ADMIN_PASSWORD "11223344"
+
 
 #define HASH_LEN 65
 typedef struct {
     int id;
-    char name[20];
+    char name[30];
     char password[HASH_LEN];
     float balance;
 }account;
@@ -32,7 +31,7 @@ void transfer_money(account *sen,int receiver, float money);
 void log_transaction(int acc_id,char *type,float);
 
 
-account* add_account();
+void add_account();
 void add_accounts(account *db[],int nm);
 void add_accounts_from_file(FILE *src);
 void log_in_admin(char id[20],char key[20]);

@@ -9,4 +9,6 @@ add_executable(untitled main.c
         account_function.c
         admin_functions.c
         hash.c
-        hash.h)
+        hash.h
+        admin_info.h
+)

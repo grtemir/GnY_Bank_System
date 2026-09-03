@@ -165,7 +165,11 @@ void handle_admin_menu() {
     do{
         system("cls");
         admin_screen();
-        scanf("%d",&chs);
+        if (scanf("%d",&chs)!=1) {
+            printf("Please enter a number!!");
+            chs=-1;
+            continue;
+        }
     switch (chs) {
         case 1:
             add_account();

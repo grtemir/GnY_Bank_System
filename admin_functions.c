@@ -2,28 +2,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-account* add_account() {
-    account *acc=malloc(sizeof(account));
+#include "admin_info.h"
+void add_account() {
+    account acc;
 
     printf("Enter an account id: \n");
-    if (scanf("%d",&(acc->id))!=1) {
+    if (scanf("%d",&(acc.id))!=1) {
         perror("Scanf error ");
         exit(1);
     }
 
     printf("Enter account password: \n");
-    if (scanf("%s",(acc->password))!=1) {
+    if (scanf("%s",(acc.password))!=1) {
         perror("Scanf error ");
         exit(1);}
 
     printf("Enter a name : \n");
-    if (scanf("%s",acc->name)!=1) {
+    if (scanf("%29s",acc.name)!=1) {
         perror("Scanf error ");
         exit(1);}
 
     printf("Enter balance: \n");
-    if (scanf("%f",&(acc->balance))!=1) {
+    if (scanf("%f",&(acc.balance))!=1) {
         perror("Scanf error ");
         exit(1);}
 
@@ -34,26 +34,25 @@ account* add_account() {
         exit(1);}
 
     char hashed_psw[HASH_LEN];
-    hash_sha256(acc->password,hashed_psw);
+    hash_sha256(acc.password,hashed_psw);
 
-    strcpy(acc->password,hashed_psw);
+    strcpy(acc.password,hashed_psw);
 
-    fprintf(fp,"%d:%s:%s:%.2f\n",acc->id,acc->name,hashed_psw,acc->balance);
+    fprintf(fp,"%d:%s:%s:%.2f\n",acc.id,acc.name,hashed_psw,acc.balance);
 
-    log_transaction(acc->id,"ADMIN_ADD_ACC_SUCCESS",0);
+    log_transaction(acc.id,"ADMIN_ADD_ACC_SUCCESS",0);
 
     if (fclose(fp)==EOF) {
-        log_transaction(acc->id,"ADMIN_ADD_ACC_FAILED_FILE_ERROR",0);
+        log_transaction(acc.id,"ADMIN_ADD_ACC_FAILED_FILE_ERROR",0);
         perror("Fclose error");
     }
-    return acc;
 }
 
 void add_accounts(account *db[],int nm) {
 
     int i;
     for (i=0;i<nm;i++) {
-        db[i]=add_account();
+        add_account();
     }
 }
 
@@ -76,7 +75,11 @@ void add_accounts_from_file(FILE *src) {
 }
 
 void log_in_admin(char id[20],char key[20]) {
-    if ((strcmp(id,ADMIN_ID)==0 && strcmp(key,ADMIN_PASSWORD)==0)){
+
+    char hashed_psw[HASH_LEN];
+    hash_sha256(key,hashed_psw);
+
+    if ((strcmp(id,ADMIN_ID)==0 && strcmp(hashed_psw,ADMIN_HASH)==0)){
         log_transaction(000, "ADMIN_LOGIN_SUCCESS", 0);
         admin_screen();
         handle_admin_menu();
@@ -113,6 +116,8 @@ void list_accounts() {
     printf("|------|--------------------|-------------|\n");
 
     printf("");
+
+    fclose(fp);
 }
 
 void list_logs() {

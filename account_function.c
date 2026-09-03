@@ -19,7 +19,7 @@ void sign_up() {
         exit(1);}
 
     printf("Enter a name : \n");
-    if (scanf("%s",acc->name)!=1) {
+    if (scanf("%29s",acc->name)!=1) {
         perror("Scanf error");
         exit(1);}
 
